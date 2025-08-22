@@ -285,14 +285,66 @@ async function handleLogin() {
           登录成功！
         </h2>
         <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">
-          您已成功登录 Telegram 账号
+          {{ state.loginMode === 'bot' ? '您已成功登录 Telegram Bot' : '您已成功登录 Telegram 账号' }}
         </p>
+        
+        <!-- Bot mode specific instructions -->
+        <div v-if="state.loginMode === 'bot'" class="mt-6 border border-blue-200 rounded-xl bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+          <p class="text-sm text-blue-800 dark:text-blue-200 mb-3">
+            Bot 模式下，您需要手动导入聊天记录才能开始搜索。
+          </p>
+          <div class="flex space-x-3">
+            <router-link 
+              to="/import"
+              class="flex-1 rounded-xl bg-blue-600 py-3 text-sm text-white font-medium transition hover:bg-blue-700"
+            >
+              导入数据
+            </router-link>
+            <button
+              class="flex-1 rounded-xl bg-primary py-3 text-sm text-white font-medium transition hover:bg-primary/90"
+              @click="redirectRoot"
+            >
+              进入主页
+            </button>
+          </div>
+        </div>
+        
+        <!-- User mode normal button -->
         <button
+          v-else
           class="mt-6 w-full rounded-xl bg-primary py-4 text-lg text-white font-bold transition hover:bg-primary/90"
           @click="redirectRoot"
         >
           进入主页
         </button>
+      </div>
+
+      <!-- Bot 模式帮助信息 -->
+      <div v-if="state.loginMode === 'bot' && state.currentStep !== 'complete'" class="mt-8 border border-amber-200 rounded-xl bg-amber-50 p-6 dark:border-amber-800 dark:bg-amber-900/20">
+        <div class="flex items-start space-x-4">
+          <div class="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0">
+            <span class="i-lucide-help-circle text-white text-sm" />
+          </div>
+          <div>
+            <h3 class="text-lg text-amber-900 font-semibold dark:text-amber-100">
+              Bot 模式使用提示
+            </h3>
+            <div class="mt-2 text-amber-800 dark:text-amber-200">
+              <p class="mb-3">Bot 模式适合以下场景：</p>
+              <ul class="list-disc list-inside space-y-1 text-sm">
+                <li>不想使用个人账号登录</li>
+                <li>只需要搜索特定群组的消息</li>
+                <li>希望通过手动导入来搜索历史数据</li>
+              </ul>
+              <p class="mt-3 text-sm">
+                <strong>注意：</strong>登录后您需要手动导入聊天记录才能进行搜索。
+                <router-link to="/import" class="text-amber-700 underline hover:text-amber-600 dark:text-amber-300 dark:hover:text-amber-200">
+                  了解如何导入 →
+                </router-link>
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

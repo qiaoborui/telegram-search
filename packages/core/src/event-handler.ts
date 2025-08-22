@@ -12,6 +12,7 @@ import { registerConfigEventHandlers } from './event-handlers/config'
 import { registerDialogEventHandlers } from './event-handlers/dialog'
 import { registerEntityEventHandlers } from './event-handlers/entity'
 import { registerGramEventsEventHandlers } from './event-handlers/gram-events'
+import { registerImportEventHandlers } from './event-handlers/import'
 import { registerMessageEventHandlers } from './event-handlers/message'
 import { registerMessageResolverEventHandlers } from './event-handlers/message-resolver'
 import { registerSessionEventHandlers } from './event-handlers/session'
@@ -69,6 +70,7 @@ export function basicEventHandler(
   registerStorageEventHandlers(ctx)
   registerConfigEventHandlers(ctx)(configService)
   registerMessageResolverEventHandlers(ctx)(messageResolverService)
+  registerImportEventHandlers(ctx)
 
   ;(async () => {
     let sessionService: SessionService

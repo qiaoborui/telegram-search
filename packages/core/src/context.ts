@@ -12,6 +12,7 @@ import type { MessageEventFromCore, MessageEventToCore } from './services/messag
 import type { MessageResolverEventFromCore, MessageResolverEventToCore } from './services/message-resolver'
 import type { StorageEventFromCore, StorageEventToCore } from './services/storage'
 import type { TakeoutEventFromCore, TakeoutEventToCore } from './services/takeout'
+import type { ImportEventFromCore, ImportEventToCore } from './event-handlers/import'
 
 import { useLogger } from '@unbird/logg'
 import { EventEmitter } from 'eventemitter3'
@@ -30,6 +31,7 @@ export type FromCoreEvent = ClientInstanceEventFromCore
   & ConfigEventFromCore
   & GramEventsEventFromCore
   & MessageResolverEventFromCore
+  & ImportEventFromCore
 
 export type ToCoreEvent = ClientInstanceEventToCore
   & MessageEventToCore
@@ -43,6 +45,7 @@ export type ToCoreEvent = ClientInstanceEventToCore
   & ConfigEventToCore
   & GramEventsEventToCore
   & MessageResolverEventToCore
+  & ImportEventToCore
 
 export type CoreEvent = FromCoreEvent & ToCoreEvent
 
