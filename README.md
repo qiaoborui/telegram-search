@@ -23,6 +23,30 @@
 
 一个功能强大的 Telegram 聊天记录搜索工具，支持向量搜索和语义匹配。基于 OpenAI 的语义向量技术，让你的 Telegram 消息检索更智能、更精准。
 
+## ✨ 新特性：Bot Token 认证
+
+现在支持使用 Telegram Bot Token 进行认证，无需使用个人账号登录：
+
+- 🤖 **Bot Token 登录**：使用 @BotFather 创建的 Bot Token
+- 📁 **手动导入**：支持 Telegram Desktop 导出的 JSON 文件
+- 🔒 **隐私保护**：避免使用个人手机号和验证码
+- 📊 **完整功能**：支持所有搜索和分析功能
+
+> [查看 Bot 认证使用指南](./docs/bot-authentication.md)
+
+## 🚀 认证方式选择
+
+### 用户认证（传统方式）
+- ✅ 自动同步所有聊天记录
+- ✅ 实时消息更新
+- ❌ 需要个人手机号验证
+
+### Bot Token 认证（新增）
+- ✅ 无需个人凭据
+- ✅ 适合团队和自动化使用
+- ✅ 支持手动数据导入
+- ❌ 需要手动导入历史记录
+
 ## 💖 赞助者
 
 ![Sponsors](https://github.com/luoling8192/luoling8192/raw/master/sponsorkit/sponsors.svg)
@@ -42,10 +66,23 @@ git switch release
 2. 修改配置文件
 
 ```bash
-# 根据需要，修改 `config/config.yaml` 中的设置
-# 务必修改配置中的 `database.host` 的值为数据库容器的服务名称 "pgvector"
-
+# 复制配置文件模板
 cp config/config.example.yaml config/config.yaml
+
+# 编辑配置文件，配置以下选项：
+# - Telegram API 凭据 (apiId, apiHash)
+# - Bot Token (可选，用于 Bot 认证模式)
+# - 数据库连接信息
+# - OpenAI API Key (用于向量搜索)
+```
+
+**Bot 认证配置示例：**
+```yaml
+api:
+  telegram:
+    apiId: '你的API_ID'
+    apiHash: '你的API_HASH'
+    botToken: '你的BOT_TOKEN'  # 从 @BotFather 获取
 ```
 
 3. 启动服务
