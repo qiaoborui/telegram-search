@@ -142,6 +142,7 @@ export function createConnectionService(ctx: CoreContext) {
         emitter.emit('session:update', { phoneNumber, session: sessionString })
 
         ctx.setClient(client)
+        ctx.setBotMode(false)
 
         emitter.emit('auth:connected')
 

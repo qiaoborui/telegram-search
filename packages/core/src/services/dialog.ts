@@ -32,7 +32,7 @@ export type DialogEvent = DialogEventFromCore & DialogEventToCore
 export type DialogService = ReturnType<typeof createDialogService>
 
 export function createDialogService(ctx: CoreContext) {
-  const { getClient, emitter } = ctx
+  const { getClient, getBotMode, emitter } = ctx
 
   const logger = useLogger('core:dialog')
 
@@ -76,6 +76,13 @@ export function createDialogService(ctx: CoreContext) {
   }
 
   async function fetchDialogs(): Promise<Result<CoreDialog[]>> {
+    // Check if we're in bot mode - bots cannot fetch user dialogs
+    if (getBotMode()) {
+      logger.verbose('Skipping dialog fetch for bot - bots cannot access user dialogs')
+      emitter.emit('dialog:data', { dialogs: [] })
+      return Ok([])
+    }
+
     // TODO: use invoke api
     // TODO: use pagination
     // Total list has a total property

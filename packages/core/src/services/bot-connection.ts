@@ -118,6 +118,7 @@ export function createBotConnectionService(ctx: CoreContext) {
         emitter.emit('session:update', { phoneNumber: `bot:${botToken.split(':')[0]}`, session: sessionString })
 
         ctx.setClient(client)
+        ctx.setBotMode(true)
 
         emitter.emit('bot:connected')
 

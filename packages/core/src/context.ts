@@ -85,6 +85,7 @@ export function createCoreContext() {
   const emitter = new EventEmitter<CoreEvent>()
   const withError = createErrorHandler(emitter)
   let telegramClient: TelegramClient
+  let isBotMode = false
 
   const toCoreEvents = new Set<keyof ToCoreEvent>()
   const fromCoreEvents = new Set<keyof FromCoreEvent>()
@@ -145,6 +146,15 @@ export function createCoreContext() {
     return telegramClient
   }
 
+  function setBotMode(isBot: boolean) {
+    useLogger().withFields({ isBot }).debug('Set bot mode')
+    isBotMode = isBot
+  }
+
+  function getBotMode(): boolean {
+    return isBotMode
+  }
+
   wrapEmitterOn(emitter, (event) => {
     useLogger('core:event').withFields({ event }).debug('Core event received')
   })
@@ -161,6 +171,8 @@ export function createCoreContext() {
     wrapEmitterOn,
     setClient,
     getClient: ensureClient,
+    setBotMode,
+    getBotMode,
     withError,
   }
 }
