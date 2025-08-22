@@ -124,7 +124,15 @@ export function setupWsRoutes(app: App) {
               state.isConnected = true
             })
             break
+          case 'bot:login':
+            // Store bot ID as phone number equivalent for session management
+            state.phoneNumber = `bot:${event.data.botToken.split(':')[0]}`
+            state.ctx?.emitter.once('bot:connected', () => {
+              state.isConnected = true
+            })
+            break
           case 'auth:logout':
+          case 'bot:logout':
             state.isConnected = false
             break
         }

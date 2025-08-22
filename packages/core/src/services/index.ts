@@ -1,3 +1,4 @@
+export type * from './bot-connection'
 export type * from './config'
 export type * from './connection'
 export type * from './dialog'

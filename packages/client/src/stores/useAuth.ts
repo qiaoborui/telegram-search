@@ -50,6 +50,19 @@ export const useAuthStore = defineStore('session', () => {
       })
     }
 
+    function loginWithBot(botToken: string) {
+      const session = websocketStore.sessions.get(websocketStore.activeSessionId)
+
+      if (session) {
+        // Store bot token as phoneNumber equivalent for session management
+        session!.phoneNumber = `bot:${botToken.split(':')[0]}`
+      }
+
+      websocketStore.sendEvent('bot:login', {
+        botToken,
+      })
+    }
+
     function submitCode(code: string) {
       websocketStore.sendEvent('auth:code', {
         code,
@@ -65,10 +78,11 @@ export const useAuthStore = defineStore('session', () => {
     function logout() {
       websocketStore.getActiveSession()!.isConnected = false
       websocketStore.sendEvent('auth:logout', undefined)
+      websocketStore.sendEvent('bot:logout', undefined)
       websocketStore.cleanup()
     }
 
-    return { login, submitCode, submitPassword, logout }
+    return { login, loginWithBot, submitCode, submitPassword, logout }
   }
 
   return {

@@ -7,6 +7,7 @@ import { useLogger } from '@unbird/logg'
 
 import { useService } from './context'
 import { registerBasicEventHandlers } from './event-handlers/auth'
+import { registerBotEventHandlers } from './event-handlers/bot'
 import { registerConfigEventHandlers } from './event-handlers/config'
 import { registerDialogEventHandlers } from './event-handlers/dialog'
 import { registerEntityEventHandlers } from './event-handlers/entity'
@@ -22,6 +23,7 @@ import { createJiebaResolver } from './message-resolvers/jieba-resolver'
 import { createLinkResolver } from './message-resolvers/link-resolver'
 import { createMediaResolver } from './message-resolvers/media-resolver'
 import { createUserResolver } from './message-resolvers/user-resolver'
+import { createBotConnectionService } from './services/bot-connection'
 import { createConfigService } from './services/config'
 import { createConnectionService } from './services/connection'
 import { createDialogService } from './services/dialog'
@@ -48,6 +50,13 @@ export function basicEventHandler(
     apiHash: config.api.telegram.apiHash,
     proxy: config.api.telegram.proxy,
   })
+  
+  const botConnectionService = useService(ctx, createBotConnectionService)({
+    apiId: Number(config.api.telegram.apiId),
+    apiHash: config.api.telegram.apiHash,
+    proxy: config.api.telegram.proxy,
+  })
+  
   const configService = useService(ctx, createConfigService)
   const messageResolverService = useService(ctx, createMessageResolverService)(registry)
 
@@ -74,6 +83,7 @@ export function basicEventHandler(
     }
 
     registerBasicEventHandlers(ctx)(connectionService, sessionService)
+    registerBotEventHandlers(ctx)(botConnectionService, sessionService)
     registerSessionEventHandlers(ctx)(sessionService)
   })()
 
@@ -86,7 +96,7 @@ export function afterConnectedEventHandler(
 ): EventHandler {
   const { emitter } = ctx
 
-  emitter.on('auth:connected', () => {
+  const handleConnection = () => {
     const messageService = useService(ctx, createMessageService)
     const dialogService = useService(ctx, createDialogService)
     const takeoutService = useService(ctx, createTakeoutService)
@@ -102,7 +112,10 @@ export function afterConnectedEventHandler(
     // Init all entities
     emitter.emit('dialog:fetch')
     gramEventsService.registerGramEvents()
-  })
+  }
+
+  emitter.on('auth:connected', handleConnection)
+  emitter.on('bot:connected', handleConnection)
 
   return () => {}
 }

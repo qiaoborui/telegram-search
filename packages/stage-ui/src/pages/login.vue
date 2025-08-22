@@ -7,7 +7,8 @@ import { toast } from 'vue-sonner'
 
 import Stepper from '../components/ui/Stepper.vue'
 
-type LoginStep = 'phone' | 'code' | 'password' | 'complete'
+type LoginStep = 'mode' | 'phone' | 'code' | 'password' | 'bot' | 'complete'
+type LoginMode = 'user' | 'bot'
 
 const router = useRouter()
 
@@ -16,11 +17,13 @@ const websocketStore = useWebsocketStore()
 const { isLoggedIn } = storeToRefs(authStore)
 
 const state = ref({
-  currentStep: 'phone' as LoginStep,
+  currentStep: 'mode' as LoginStep,
+  loginMode: 'user' as LoginMode,
   showAdvancedSettings: false,
   phoneNumber: websocketStore.getActiveSession()?.phoneNumber ?? '',
   verificationCode: '',
   twoFactorPassword: '',
+  botToken: '',
 })
 authStore.auth.needCode = false
 authStore.auth.needPassword = false
@@ -28,6 +31,7 @@ authStore.auth.isLoading = false
 
 const {
   login,
+  loginWithBot,
   submitCode,
   submitPassword,
 } = authStore.handleAuth()
@@ -54,10 +58,12 @@ watch(isLoggedIn, (value) => {
 })
 
 const steps = [
-  { step: 1, value: 'phone', title: '手机号', description: '输入您的 Telegram 手机号' },
-  { step: 2, value: 'code', title: '验证码', description: '输入 Telegram 发送的验证码' },
-  { step: 3, value: 'password', title: '二次验证', description: '输入两步验证密码' },
-  { step: 4, value: 'complete', title: '完成', description: '登录成功' },
+  { step: 1, value: 'mode', title: '登录方式', description: '选择登录方式' },
+  { step: 2, value: 'phone', title: '手机号', description: '输入您的 Telegram 手机号' },
+  { step: 3, value: 'bot', title: 'Bot Token', description: '输入您的 Telegram Bot Token' },
+  { step: 4, value: 'code', title: '验证码', description: '输入 Telegram 发送的验证码' },
+  { step: 5, value: 'password', title: '二次验证', description: '输入两步验证密码' },
+  { step: 6, value: 'complete', title: '完成', description: '登录成功' },
 ]
 
 function redirectRoot() {
@@ -65,13 +71,28 @@ function redirectRoot() {
   router.push('/')
 }
 
+function selectLoginMode(mode: LoginMode) {
+  state.value.loginMode = mode
+  if (mode === 'user') {
+    state.value.currentStep = 'phone'
+  } else {
+    state.value.currentStep = 'bot'
+  }
+}
+
 async function handleLogin() {
   authStore.auth.isLoading = true
 
   try {
     switch (state.value.currentStep) {
+      case 'mode':
+        // This should not happen
+        break
       case 'phone':
         login(state.value.phoneNumber)
+        break
+      case 'bot':
+        loginWithBot(state.value.botToken)
         break
       case 'code':
         submitCode(state.value.verificationCode)
@@ -98,6 +119,79 @@ async function handleLogin() {
         {{ steps.find(s => s.value === state.currentStep)?.description }}
       </p>
 
+      <!-- 登录方式选择 -->
+      <div v-if="state.currentStep === 'mode'" class="space-y-6">
+        <div class="space-y-4">
+          <button
+            type="button"
+            class="w-full border border-neutral-200 rounded-xl bg-neutral-100 p-6 text-left transition hover:bg-neutral-200 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600"
+            @click="selectLoginMode('user')"
+          >
+            <div class="flex items-center space-x-4">
+              <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
+                <span class="i-lucide-user text-white text-xl" />
+              </div>
+              <div>
+                <h3 class="text-lg text-gray-900 font-semibold dark:text-gray-100">用户登录</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">使用手机号和验证码登录您的 Telegram 账号</p>
+              </div>
+            </div>
+          </button>
+          
+          <button
+            type="button"
+            class="w-full border border-neutral-200 rounded-xl bg-neutral-100 p-6 text-left transition hover:bg-neutral-200 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600"
+            @click="selectLoginMode('bot')"
+          >
+            <div class="flex items-center space-x-4">
+              <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
+                <span class="i-lucide-bot text-white text-xl" />
+              </div>
+              <div>
+                <h3 class="text-lg text-gray-900 font-semibold dark:text-gray-100">Bot 登录</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">使用 Bot Token 登录，需要手动导入聊天记录</p>
+              </div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Bot Token 表单 -->
+      <form v-if="state.currentStep === 'bot'" class="space-y-6" @submit.prevent="handleLogin">
+        <div>
+          <label for="botToken" class="mb-2 block text-base text-gray-900 font-semibold dark:text-gray-100">Bot Token</label>
+          <input
+            id="botToken"
+            v-model="state.botToken"
+            type="password"
+            placeholder="1234567890:AAAA_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            class="w-full border border-neutral-200 rounded-xl bg-neutral-100 px-5 py-4 text-xl text-gray-900 transition disabled:cursor-not-allowed dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-offset-gray-800"
+            required
+            :disabled="authStore.auth.isLoading"
+          >
+          <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            从 @BotFather 获取您的 Bot Token
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <button
+            type="button"
+            class="flex-1 border border-neutral-200 rounded-xl bg-neutral-100 py-4 text-lg text-gray-900 font-bold transition hover:bg-neutral-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
+            @click="state.currentStep = 'mode'"
+          >
+            返回
+          </button>
+          <button
+            type="submit"
+            class="flex-1 flex items-center justify-center rounded-xl bg-primary py-4 text-lg text-white font-bold transition disabled:cursor-not-allowed disabled:bg-gray-300 hover:bg-primary/90 dark:disabled:bg-gray-700"
+            :disabled="authStore.auth.isLoading"
+          >
+            <span v-if="authStore.auth.isLoading" class="i-lucide-loader-2 mr-2 animate-spin" />
+            {{ authStore.auth.isLoading ? '处理中...' : '登录' }}
+          </button>
+        </div>
+      </form>
+
       <!-- 手机号码表单 -->
       <form v-if="state.currentStep === 'phone'" class="space-y-6" @submit.prevent="handleLogin">
         <div>
@@ -112,14 +206,23 @@ async function handleLogin() {
             :disabled="authStore.auth.isLoading"
           >
         </div>
-        <button
-          type="submit"
-          class="w-full flex items-center justify-center rounded-xl bg-primary py-4 text-lg text-white font-bold transition disabled:cursor-not-allowed disabled:bg-gray-300 hover:bg-primary/90 dark:disabled:bg-gray-700"
-          :disabled="authStore.auth.isLoading"
-        >
-          <span v-if="authStore.auth.isLoading" class="i-lucide-loader-2 mr-2 animate-spin" />
-          {{ authStore.auth.isLoading ? '处理中...' : '登录' }}
-        </button>
+        <div class="flex space-x-3">
+          <button
+            type="button"
+            class="flex-1 border border-neutral-200 rounded-xl bg-neutral-100 py-4 text-lg text-gray-900 font-bold transition hover:bg-neutral-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
+            @click="state.currentStep = 'mode'"
+          >
+            返回
+          </button>
+          <button
+            type="submit"
+            class="flex-1 flex items-center justify-center rounded-xl bg-primary py-4 text-lg text-white font-bold transition disabled:cursor-not-allowed disabled:bg-gray-300 hover:bg-primary/90 dark:disabled:bg-gray-700"
+            :disabled="authStore.auth.isLoading"
+          >
+            <span v-if="authStore.auth.isLoading" class="i-lucide-loader-2 mr-2 animate-spin" />
+            {{ authStore.auth.isLoading ? '处理中...' : '登录' }}
+          </button>
+        </div>
       </form>
 
       <!-- 验证码表单 -->

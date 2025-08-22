@@ -47,6 +47,7 @@ export const databaseConfigSchema = object({
 export const telegramConfigSchema = object({
   apiId: optional(string(), ''),
   apiHash: optional(string(), ''),
+  botToken: optional(string(), ''),
   proxy: optional(proxyConfigSchema),
   receiveMessage: optional(boolean(), true),
 })

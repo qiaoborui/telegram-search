@@ -17,6 +17,9 @@ api:
     # Get these values from https://my.telegram.org/apps
     apiId: '611335'
     apiHash: d524b414d21f4d37f08684c1df41ac9c
+    # Optional: Bot token for bot-based authentication (alternative to user login)
+    # Get this from @BotFather on Telegram
+    # botToken: 'YOUR_BOT_TOKEN_HERE'
     receiveMessage: false
     # Optional proxy settings
     # proxy:
