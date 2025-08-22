@@ -2,9 +2,16 @@
 import { ref } from 'vue'
 import { toast } from 'vue-sonner'
 
+// TODO: Import WebSocket store when build issues are resolved
+// import { useWebsocketStore } from '@tg-search/client/stores'
+
 const fileInput = ref<HTMLInputElement>()
 const isUploading = ref(false)
 const uploadProgress = ref(0)
+const importProgress = ref(0)
+const importStatus = ref('')
+
+// const websocketStore = useWebsocketStore()
 
 interface ImportedMessage {
   id: number
@@ -40,6 +47,8 @@ async function handleFileUpload(event: Event) {
 
   isUploading.value = true
   uploadProgress.value = 0
+  importProgress.value = 0
+  importStatus.value = ''
 
   try {
     const text = await file.text()
@@ -52,18 +61,34 @@ async function handleFileUpload(event: Event) {
     }
 
     uploadProgress.value = 50
-
-    // Simulate processing for now - in a real implementation, this would send to the backend
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    uploadProgress.value = 75
     
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    toast.success(`文件解析成功！找到 ${data.messages.length} 条消息，开始导入到数据库`)
     uploadProgress.value = 100
     
-    toast.success(`文件解析成功！找到 ${data.messages.length} 条消息，准备导入到数据库`)
-    
-    // TODO: Send to backend for actual processing
+    // TODO: Send to backend for processing when WebSocket integration is complete
     // websocketStore.sendEvent('import:data', { data })
+    
+    // For now, show a message about using the command line script
+    setTimeout(() => {
+      toast.info('请使用命令行脚本导入数据: pnpm run import:data <文件路径>')
+    }, 2000)
+    
+    // TODO: Implement WebSocket progress tracking
+    // websocketStore.waitForEvent('import:progress').then((progressData: any) => {
+    //   importProgress.value = Math.round((progressData.current / progressData.total) * 100)
+    //   importStatus.value = progressData.status
+    // })
+    
+    // websocketStore.waitForEvent('import:complete').then((result: any) => {
+    //   toast.success(`导入完成！成功导入 ${result.imported} 条消息`)
+    //   importProgress.value = 100
+    //   importStatus.value = '导入完成'
+    // })
+    
+    // websocketStore.waitForEvent('import:error').then((error: any) => {
+    //   toast.error(`导入失败: ${error.error}`)
+    //   importStatus.value = '导入失败'
+    // })
     
   } catch (error) {
     toast.error(error instanceof Error ? error.message : '导入失败')
@@ -138,15 +163,16 @@ function triggerFileInput() {
               支持 Telegram Desktop 导出的 JSON 格式文件
             </p>
 
-            <div v-if="isUploading" class="mb-4">
-              <div class="w-full h-2 rounded-full bg-neutral-200 dark:bg-gray-600">
+            <div v-if="isUploading || importProgress > 0" class="mb-4">
+              <div class="w-full h-2 rounded-full bg-neutral-200 dark:bg-gray-600 mb-2">
                 <div 
                   class="h-2 rounded-full bg-primary transition-all duration-300"
-                  :style="{ width: `${uploadProgress}%` }"
+                  :style="{ width: `${isUploading ? uploadProgress : importProgress}%` }"
                 />
               </div>
-              <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                上传中... {{ uploadProgress }}%
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                <span v-if="isUploading">上传中... {{ uploadProgress }}%</span>
+                <span v-else-if="importProgress > 0">{{ importStatus }} {{ importProgress }}%</span>
               </p>
             </div>
 

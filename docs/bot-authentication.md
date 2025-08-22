@@ -42,7 +42,9 @@ api:
 
 ### 4. Import Chat Data
 
-Since bots have limited access to historical data, you'll need to manually import chat records:
+Since bots have limited access to historical data, you'll need to manually import chat records. You have two options:
+
+#### Option A: Web Interface Import
 
 1. After logging in, click "导入数据" (Import Data) or navigate to `/import`
 2. Export your chat history from Telegram Desktop:
@@ -53,6 +55,31 @@ Since bots have limited access to historical data, you'll need to manually impor
    - Wait for export to complete
 3. Upload the exported JSON file to the import page
 4. Wait for processing to complete
+
+#### Option B: Command Line Import Script
+
+For batch processing or server-side imports, use the command line script:
+
+```bash
+# Import a single file
+pnpm run import:data ./path/to/ChatExport_001.json
+
+# Import with custom chat ID
+pnpm run import:data ./path/to/ChatExport_001.json my_custom_chat_id
+
+# Import multiple files in batch
+for file in ./exports/*.json; do
+  pnpm run import:data "$file"
+done
+```
+
+**Command Line Script Benefits:**
+- ✅ Batch processing of multiple export files
+- ✅ Progress tracking and detailed logging
+- ✅ Automatic error handling and recovery
+- ✅ Custom chat ID assignment
+- ✅ Duplicate message detection and updating
+- ✅ Large file support with memory-efficient processing
 
 ## Bot Limitations
 
@@ -196,6 +223,45 @@ If you're switching from user authentication to bot authentication:
 6. **Verify Search**: Test search functionality with imported data
 
 ## Advanced Usage
+
+### Command Line Scripts
+
+The project includes several command line scripts for advanced operations:
+
+#### Data Import Script
+
+```bash
+# Import single file
+pnpm run import:data ./telegram_export.json
+
+# Import with custom chat ID
+pnpm run import:data ./telegram_export.json custom_chat_id
+
+# Show help
+pnpm run import:data
+```
+
+**Features:**
+- Supports large files (tested with 100MB+ exports)
+- Batch processing with automatic error recovery
+- Progress tracking and detailed logging
+- Duplicate message handling
+- Memory-efficient streaming processing
+
+**Script Location:** `scripts/import-data.ts`
+
+#### Database Operations
+
+```bash
+# Run database migrations
+pnpm run db:migrate
+
+# Push schema changes
+pnpm run db:push
+
+# Generate migration files
+pnpm run db:generate
+```
 
 ### Multiple Bots
 You can use multiple bots for different purposes:

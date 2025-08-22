@@ -23,6 +23,7 @@
     "db:migrate": "tsx scripts/db.ts migrate",
     "db:push": "tsx scripts/db.ts push",
     "db:kit": "tsx scripts/db.ts",
+    "import:data": "tsx scripts/import-data.ts",
     "postinstall": "pnpm run packages:build"
   },
   "devDependencies": {
